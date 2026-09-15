@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เทียนปัญญา E-Book Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Apple Style Variables ===== */
+:root {
+  --bg-color: #f5f5f7;
+  --card-bg: #ffffff;
+  --text-main: #1d1d1f;
+  --text-muted: #86868b;
+  --accent: #0071e3;
+  --accent-hover: #0077ED;
+  --border-color: #d2d2d7;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 24px rgba(0,0,0,0.12);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Sarabun", sans-serif;
+  color: var(--text-main);
+  background: var(--bg-color);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Layout & Typography ===== */
+.app { display: grid; grid-template-rows: auto 1fr auto; min-height: 100vh; }
+h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.02em; }
+.section-header { text-align: center; margin-bottom: 40px; }
+.section-header h2 { font-size: 32px; margin-bottom: 12px; }
+.section-header p { font-size: 17px; color: var(--text-muted); max-width: 600px; margin: 0 auto; }
+
+/* ===== Topbar ===== */
+header.topbar {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+  padding: 16px 32px;
+  position: sticky; top: 0; z-index: 100;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.brand { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 18px; }
+.brand svg { width: 24px; height: 24px; fill: var(--text-main); }
+.session-info { font-size: 14px; color: var(--text-muted); }
+
+/* ===== Stepper ===== */
+.stepper {
+  display: flex; justify-content: center; gap: 8px; padding: 24px 20px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.step {
+  padding: 8px 16px; border-radius: 980px; font-size: 13px; font-weight: 500;
+  color: var(--text-muted); background: var(--border-color); cursor: pointer;
+  transition: var(--transition); white-space: nowrap; display: flex; align-items: center; gap: 6px;
+}
+.step.active { background: var(--text-main); color: #fff; }
+.step.done { background: #e5e5ea; color: var(--text-main); }
+
+/* ===== Main ===== */
+main { max-width: 980px; margin: 0 auto; padding: 20px 24px 80px; width: 100%; }
+.step-section { display: none; animation: fadeIn 0.5s ease; }
+.step-section.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== Cards & Grids ===== */
+.options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 24px; }
+.option-card {
+  background: var(--card-bg); border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg); padding: 24px; cursor: pointer;
+  transition: var(--transition); display: flex; flex-direction: column; gap: 12px;
+}
+.option-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.option-card.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.option-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--bg-color); }
+.option-icon svg { width: 24px; height: 24px; stroke: var(--text-main); stroke-width: 1.5; fill: none; }
+.option-card.selected .option-icon svg { stroke: var(--accent); }
+.option-card h3 { font-size: 17px; }
+.option-card p { font-size: 14px; color: var(--text-muted); }
+
+/* ===== Forms ===== */
+.field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+label { font-size: 14px; font-weight: 500; color: var(--text-main); }
+input[type="text"], textarea, select {
+  font-family: inherit; font-size: 15px; padding: 14px 16px;
+  background: var(--card-bg); border: 1px solid var(--border-color);
+  border-radius: var(--radius-md); transition: var(--transition); outline: none;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2); }
+textarea { min-height: 100px; resize: vertical; }
+
+/* ===== Character Preview ===== */
+.character-box {
+  background: var(--card-bg); border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg); padding: 32px; margin-bottom: 24px;
+  display: grid; grid-template-columns: 200px 1fr; gap: 32px; align-items: center;
+}
+.char-visual {
+  height: 200px; background: var(--bg-color); border-radius: var(--radius-md);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  position: relative; overflow: hidden; padding-bottom: 10px;
+}
+/* Abstract cute character CSS */
+.char-head { width: 60px; height: 60px; border-radius: 50%; z-index: 2; transition: var(--transition); }
+.char-body { height: 90px; z-index: 1; transition: var(--transition); margin-top: -10px; }
+.char-body.slim { width: 50px; border-radius: 20px 20px 10px 10px; }
+.char-body.normal { width: 70px; border-radius: 25px 25px 12px 12px; }
+.char-body.chubby { width: 95px; border-radius: 40px 40px 15px 15px; }
+
+.trait-selectors { display: flex; flex-direction: column; gap: 16px; }
+.color-swatches, .shape-swatches { display: flex; gap: 12px; }
+.swatch {
+  width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent; cursor: pointer;
+  transition: var(--transition); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+}
+.swatch.selected { box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--accent); }
+.shape-swatch {
+  padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 980px;
+  font-size: 13px; cursor: pointer; transition: var(--transition);
+}
+.shape-swatch.selected { background: var(--text-main); color: white; border-color: var(--text-main); }
+
+/* ===== Storyboard Table ===== */
+.storyboard-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+.storyboard-table th, .storyboard-table td {
+  padding: 16px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: top;
+}
+.storyboard-table th { font-weight: 500; color: var(--text-muted); font-size: 13px; }
+.page-badge {
+  display: inline-block; background: var(--bg-color); padding: 4px 10px;
+  border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; margin-bottom: 8px;
+}
+
+/* ===== Meta-Prompt Box ===== */
+.prompt-box {
+  background: var(--text-main); color: #f5f5f7; border-radius: var(--radius-lg);
+  padding: 24px; font-family: ui-monospace, monospace; font-size: 14px;
+  line-height: 1.6; white-space: pre-wrap; margin-bottom: 24px;
+}
+.prompt-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;
+}
+
+/* ===== Buttons ===== */
+.btn-row { display: flex; justify-content: flex-end; gap: 12px; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border-color); }
+button {
+  font-family: inherit; font-size: 15px; font-weight: 500; padding: 12px 24px;
+  border-radius: 980px; border: none; cursor: pointer; transition: var(--transition);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary { background: var(--border-color); color: var(--text-main); }
+.btn-secondary:hover { background: #c7c7cc; }
+.btn-icon svg { width: 18px; height: 18px; fill: currentColor; }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 980px;
+  font-size: 14px; opacity: 0; visibility: hidden; transition: var(--transition); z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+.toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+
+/* Print */
+@media print { header, .stepper, .btn-row { display: none; } }
+@media (max-width: 768px) {
+  .field-row, .character-box { grid-template-columns: 1fr; }
+  .stepper { justify-content: flex-start; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    THIAN Model Builder
+  </div>
+  <div class="session-info" id="student-name-display">ลงทะเบียนเพื่อเริ่มใช้งาน</div>
+</header>
+
+<nav class="stepper" id="stepper">
+  <!-- Generated by JS -->
+</nav>
+
+<main>
+<!-- STEP 1 -->
+<section class="step-section active" data-section="1">
+  <div class="section-header">
+    <h2>ข้อมูลนักเรียน</h2>
+    <p>เริ่มต้นการสร้างสรรค์ e-book ด้วยการลงทะเบียนผู้สร้างผลงาน</p>
+  </div>
+  <div class="field-row">
+    <div class="field"><label>ชื่อ-นามสกุล</label><input type="text" id="fullName" placeholder="เช่น ด.ญ.ใจดี มานะ"></div>
+    <div class="field"><label>ชื่อเล่น</label><input type="text" id="nickname" placeholder="เช่น ใจดี"></div>
+  </div>
+  <div class="field-row">
+    <div class="field">
+      <label>ชั้นเรียน</label>
+      <select id="grade">
+        <option value="">เลือกชั้นเรียน...</option>
+        <option value="ม.2/1">มัธยมศึกษาปีที่ 2/1</option>
+        <option value="ม.2/2">มัธยมศึกษาปีที่ 2/2</option>
+      </select>
+    </div>
+    <div class="field"><label>กลุ่ม / ชื่อทีม</label><input type="text" id="teamName" placeholder="เช่น ทีมเทียนแห่งปัญญา"></div>
+  </div>
+  <div class="btn-row"><button class="btn-primary" onclick="goNext()">ถัดไป</button></div>
+</section>
+
+<!-- STEP 2 -->
+<section class="step-section" data-section="2">
+  <div class="section-header">
+    <h2>ธีม & สไตล์</h2>
+    <p>กำหนดทิศทางงานศิลป์และโครงเรื่องหลักของ e-book</p>
+  </div>
+  <div class="field"><label>ชื่อ e-book</label><input type="text" id="ebookTitle" placeholder="เช่น เทียนแห่งความทรงจำ"></div>
+  <label>เลือกสไตล์ภาพประกอบ (Style)</label>
+  <div class="options-grid" id="style-options"></div>
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goPrev()">กลับ</button>
+    <button class="btn-primary" onclick="goNext()">ถัดไป</button>
+  </div>
+</section>
+
+<!-- STEP 3 -->
+<section class="step-section" data-section="3">
+  <div class="section-header">
+    <h2>ออกแบบตัวละครหลัก</h2>
+    <p>กำหนดรูปลักษณ์เพื่อให้ AI นำไปใช้สร้างภาพจำลองที่สอดคล้องกันตลอดเรื่อง</p>
+  </div>
+  
+  <div class="character-box">
+    <div class="char-visual">
+      <div class="char-head" id="preview-head" style="background-color: #ffcda5;"></div>
+      <div class="char-body normal" id="preview-body" style="background-color: #0071e3;"></div>
+    </div>
+    <div class="trait-selectors">
+      <div class="field"><label>ชื่อตัวละครหลัก</label><input type="text" id="charName" placeholder="เช่น น้องแก้ว"></div>
+      <div>
+        <label>รูปร่าง (Body Shape)</label>
+        <div class="shape-swatches">
+          <div class="shape-swatch" onclick="setShape('slim', this)">ผอมบาง</div>
+          <div class="shape-swatch selected" onclick="setShape('normal', this)">สมส่วน</div>
+          <div class="shape-swatch" onclick="setShape('chubby', this)">ท้วมน่ารัก</div>
+        </div>
+      </div>
+      <div>
+        <label>สีผิว (Skin Tone)</label>
+        <div class="color-swatches" id="skin-swatches"></div>
+      </div>
+      <div>
+        <label>สีชุด/เสื้อผ้า (Outfit Color)</label>
+        <div class="color-swatches" id="shirt-swatches"></div>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label>คำอธิบายชุดเพิ่มเติม</label>
+        <input type="text" id="charClothing" placeholder="เช่น ใส่ชุดไทยประยุกต์พื้นเมือง">
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goPrev()">กลับ</button>
+    <button class="btn-primary" onclick="goNext()">ถัดไป</button>
+  </div>
+</section>
+
+<!-- STEP 4 -->
+<section class="step-section" data-section="4">
+  <div class="section-header">
+    <h2>โครงเรื่อง (Plot)</h2>
+    <p>วางรากฐานของเรื่องราว จุดเริ่มต้น ไคลแมกซ์ และบทสรุป</p>
+  </div>
+  <div class="field"><label>จุดเริ่มต้น</label><textarea id="plotStart" placeholder="ตัวละครพบกับอะไร..."></textarea></div>
+  <div class="field"><label>จุดหักมุม / ไคลแมกซ์</label><textarea id="plotClimax" placeholder="ความขัดแย้งหรือสิ่งที่ได้เรียนรู้..."></textarea></div>
+  <div class="field"><label>ตอนจบ และ ข้อคิด (หน้าที่พลเมือง)</label><textarea id="plotEnding" placeholder="สรุปเรื่องราวและคติธรรม..."></textarea></div>
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goPrev()">กลับ</button>
+    <button class="btn-primary" onclick="goNext()">ถัดไป</button>
+  </div>
+</section>
+
+<!-- STEP 5 -->
+<section class="step-section" data-section="5">
+  <div class="section-header">
+    <h2>Storyboard 12 หน้า</h2>
+    <p>เล่าเรื่องย่อๆ ในแต่ละหน้า (ไม่ต้องสละสลวยมาก เดี๋ยว AI Editor จะช่วยเกลาให้)</p>
+  </div>
+  <table class="storyboard-table">
+    <thead><tr><th width="15%">หน้า</th><th width="50%">เนื้อหาคราวๆ</th><th>บริบทภาพที่อยากเห็น</th></tr></thead>
+    <tbody id="storyboard-body"></tbody>
+  </table>
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goPrev()">กลับ</button>
+    <button class="btn-primary" onclick="goNext()">ถัดไป</button>
+  </div>
+</section>
+
+<!-- STEP 6 -->
+<section class="step-section" data-section="6">
+  <div class="section-header">
+    <h2>Master Prompt สำหรับ AI</h2>
+    <p>คัดลอกคำสั่งด้านล่างนี้ไปวางใน ChatGPT หรือ Gemini เพื่อให้ AI ทำหน้าที่เป็น "บรรณาธิการ" ขัดเกลาเรื่องราวและสร้าง Image Prompts ที่สมบูรณ์แบบ</p>
+  </div>
+  
+  <div class="prompt-header">
+    <h3>📋 ชุดคำสั่ง Meta-Prompt</h3>
+    <button class="btn-primary" onclick="copyMasterPrompt()">คัดลอกคำสั่งทั้งหมด</button>
+  </div>
+  <div class="prompt-box" id="master-prompt-display"></div>
+
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goPrev()">กลับ</button>
+    <button class="btn-primary" onclick="goNext()">เสร็จสิ้นภารกิจ</button>
+  </div>
+</section>
+
+<!-- STEP 7 -->
+<section class="step-section" data-section="7">
+  <div class="section-header">
+    <h2>🎉 เครดิตผู้สร้างสรรค์</h2>
+    <p>บันทึกข้อมูลและนำเครดิตนี้ไปใส่ในหน้าสุดท้ายของ e-book ของคุณ</p>
+  </div>
+  
+  <div class="options-grid" id="credits-display"></div>
+
+  <div style="margin-top: 40px; text-align: center; color: var(--text-muted); font-size: 13px;">
+    นวัตกรรม "เทียนปัญญา" (THIAN Model) โดย ครูสรวิศ แหวนเงิน<br>
+    โรงเรียนเสียมทองพิทยาคม สพม.อุบลราชธานี อำนาจเจริญ
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="goPrev()">กลับ</button>
+    <button class="btn-primary" onclick="window.print()">พิมพ์ / บันทึก PDF</button>
+  </div>
+</section>
+
+</main>
+</div>
+
+<div class="toast" id="toast">คัดลอกเรียบร้อยแล้ว</div>
+
+<script>
+// Icon SVGs
+const icons = {
+  art: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.38 0 2.5-1.12 2.5-2.5 0-.53-.19-1.04-.55-1.45-.31-.36-.45-.82-.45-1.3 0-1.24 1.01-2.25 2.25-2.25h1.75c2.76 0 5-2.24 5-5 0-4.42-4.48-8-10-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 8 6.5 8s1.5.67 1.5 1.5S7.33 11 6.5 11zm3-4C8.67 7 8 6.33 8 5.5S8.67 4 9.5 4s1.5.67 1.5 1.5S10.33 7 9.5 7zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 4 14.5 4s1.5.67 1.5 1.5S15.33 7 14.5 7zm3 4c-.83 0-1.5-.67-1.5-1.5S15.33 8 16.5 8s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>',
+  book: '<svg viewBox="0 0 24 24"><path d="M4 19V5a2 2 0 0 1 2-2h13.4a.5.5 0 0 1 .49.6l-1 5a.5.5 0 0 1-.49.4H6v10h12v2H6a2 2 0 0 1-2-2z"/></svg>',
+  monitor: '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  camera: '<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>'
+};
+
+// Data States
+const state = {
+  step: 1,
+  data: {
+    fullName: '', nickname: '', grade: '', teamName: '', ebookTitle: '', selectedStyle: '',
+    charName: '', charShape: 'normal', charSkin: '#ffcda5', charShirt: '#0071e3', charClothing: '',
+    plotStart: '', plotClimax: '', plotEnding: '',
+    storyboard: Array(12).fill({ content: '', image: '' })
+  }
+};
+
+const STYLES = [
+  { id: 'traditional', title: 'จิตรกรรมไทยร่วมสมัย', desc: 'สีสันวิจิตร ลวดลายไทยประยุกต์ เรียบหรู', icon: icons.art, prompt: 'Contemporary Thai mural art style, elegant, intricate Thai patterns, masterful composition' },
+  { id: 'ghibli', title: 'แอนิเมชันอบอุ่น (Ghibli)', desc: 'ภาพสไตล์สตูดิโอจิบลิ อบอุ่น ละมุนตา', icon: icons.monitor, prompt: 'Studio Ghibli animation style, heartwarming, pastel tones, highly detailed background' },
+  { id: 'storybook', title: 'หนังสือภาพเด็ก (Watercolor)', desc: 'สีน้ำโปร่งแสง ฟังสบายตา เหมาะสำหรับเด็ก', icon: icons.book, prompt: 'Children picture book illustration, soft watercolor, dreamy, emotional' },
+  { id: 'cinematic', title: 'ภาพยนตร์สมจริง (Cinematic)', desc: 'แสงเงาจัดจ้าน สมจริงระดับภาพยนตร์', icon: icons.camera, prompt: 'Cinematic lighting, hyper-realistic, 8k, dramatic photography, Unreal Engine 5 render' }
+];
+
+const SKINS = ['#ffcda5', '#e2a878', '#c68656', '#9c5c32', '#6b3c1c'];
+const SHIRTS = ['#0071e3', '#ff3b30', '#34c759', '#ff9500', '#af52de', '#1d1d1f', '#ffffff'];
+
+function init() {
+  renderStepper();
+  renderStyles();
+  renderSwatches();
+  renderStoryboard();
+  updateUI();
+}
+
+function renderStepper() {
+  const steps = ['ข้อมูล', 'สไตล์', 'ตัวละคร', 'โครงเรื่อง', 'สตอรี่บอร์ด', 'รับ Prompt', 'เครดิต'];
+  document.getElementById('stepper').innerHTML = steps.map((s, i) => 
+    `<div class="step ${i+1 === state.step ? 'active' : (i+1 < state.step ? 'done' : '')}">${i+1}. ${s}</div>`
+  ).join('');
+}
+
+function renderStyles() {
+  document.getElementById('style-options').innerHTML = STYLES.map(s => `
+    <div class="option-card ${state.data.selectedStyle === s.id ? 'selected' : ''}" onclick="selectStyle('${s.id}')">
+      <div class="option-icon">${s.icon}</div>
+      <h3>${s.title}</h3><p>${s.desc}</p>
+    </div>
+  `).join('');
+}
+
+function selectStyle(id) { state.data.selectedStyle = id; renderStyles(); }
+
+function renderSwatches() {
+  document.getElementById('skin-swatches').innerHTML = SKINS.map(c => 
+    `<div class="swatch ${state.data.charSkin === c ? 'selected' : ''}" style="background:${c}" onclick="setSkin('${c}', this)"></div>`
+  ).join('');
+  document.getElementById('shirt-swatches').innerHTML = SHIRTS.map(c => 
+    `<div class="swatch ${state.data.charShirt === c ? 'selected' : ''}" style="background:${c}" onclick="setShirt('${c}', this)"></div>`
+  ).join('');
+}
+
+function setShape(shape, el) {
+  state.data.charShape = shape;
+  document.querySelectorAll('.shape-swatch').forEach(n => n.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('preview-body').className = `char-body ${shape}`;
+}
+
+function setSkin(color, el) {
+  state.data.charSkin = color;
+  document.querySelectorAll('#skin-swatches .swatch').forEach(n => n.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('preview-head').style.backgroundColor = color;
+}
+
+function setShirt(color, el) {
+  state.data.charShirt = color;
+  document.querySelectorAll('#shirt-swatches .swatch').forEach(n => n.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('preview-body').style.backgroundColor = color;
+}
+
+function renderStoryboard() {
+  const hints = ['หน้าปก', 'คำนำ/แนะนำตัว', 'เริ่มเรื่อง', 'ปัญหา', 'การเดินทาง', 'พบสิ่งใหม่', 'ลองทำ', 'อุปสรรค', 'ทางแก้', 'ความสำเร็จ', 'ข้อคิด', 'จบเรื่อง'];
+  document.getElementById('storyboard-body').innerHTML = hints.map((hint, i) => `
+    <tr>
+      <td><span class="page-badge">หน้า ${i+1}</span><br><span style="font-size:12px;color:var(--text-muted);">${hint}</span></td>
+      <td><textarea id="sb-content-${i}" placeholder="เรื่องราว..."></textarea></td>
+      <td><textarea id="sb-image-${i}" placeholder="ภาพฉากที่อยากเห็น..."></textarea></td>
+    </tr>
+  `).join('');
+}
+
+function collectData() {
+  ['fullName', 'nickname', 'grade', 'teamName', 'ebookTitle', 'charName', 'charClothing', 'plotStart', 'plotClimax', 'plotEnding'].forEach(id => {
+    state.data[id] = document.getElementById(id).value;
+  });
+  for(let i=0; i<12; i++) {
+    state.data.storyboard[i] = {
+      content: document.getElementById(`sb-content-${i}`).value,
+      image: document.getElementById(`sb-image-${i}`).value
+    };
+  }
+}
+
+function generateMasterPrompt() {
+  const d = state.data;
+  const styleObj = STYLES.find(s => s.id === d.selectedStyle) || STYLES[0];
+  
+  let prompt = `หน้าที่ของคุณคือเป็น "บรรณาธิการหนังสือมืออาชีพและผู้เชี่ยวชาญการสร้าง Prompt ภาพระดับโลก"\n`;
+  prompt += `ฉันเป็นนักเรียนชื่อ ${d.fullName} กำลังทำโปรเจกต์ e-book ชื่อ "${d.ebookTitle}"\n\n`;
+  
+  prompt += `--- ข้อมูลบริบทและตัวละคร ---\n`;
+  prompt += `- ธีมเรื่อง: ประเพณีแห่เทียนพรรษา จังหวัดอุบลราชธานี การเป็นพลเมืองดี และความภาคภูมิใจในท้องถิ่น\n`;
+  prompt += `- สไตล์ภาพ: ${styleObj.title}\n`;
+  prompt += `- ตัวละครหลัก: ชื่อ ${d.charName || 'ตัวละคร'}, รูปร่าง ${d.charShape}, เสื้อผ้าสี ${d.charShirt} (${d.charClothing})\n\n`;
+  
+  prompt += `--- โครงเรื่องหลัก ---\nจุดเริ่มต้น: ${d.plotStart}\nจุดหักมุม: ${d.plotClimax}\nข้อคิดตอนจบ: ${d.plotEnding}\n\n`;
+  
+  prompt += `--- สตอรี่บอร์ดดิบ 12 หน้า ---\n`;
+  d.storyboard.forEach((sb, i) => {
+    prompt += `[หน้า ${i+1}] เนื้อหา: ${sb.content || '-'} | ภาพที่ต้องการ: ${sb.image || '-'}\n`;
+  });
+  
+  prompt += `\n=================================\n`;
+  prompt += `คำสั่ง (สิ่งที่คุณต้องทำให้ฉัน):\n`;
+  prompt += `กรุณาเขียนตอบกลับทีละหน้า (หน้า 1 ถึง 12) โดยให้องค์ประกอบดังนี้:\n`;
+  prompt += `1. เนื้อเรื่องที่เกลาแล้ว (ภาษาไทย): เขียนบรรยายให้สละสลวย ยิ่งใหญ่ กินใจ มีบทพูดหากจำเป็น (ความยาวประมาณ 2-4 บรรทัดต่อหน้า)\n`;
+  prompt += `2. Image Prompt (English): สำหรับนำไปใช้ใน AI สร้างภาพ (เช่น Midjourney/Leonardo) โดยให้สอดคล้องกับ "สไตล์ภาพ" ที่ระบุไว้ และต้องบรรยายลักษณะตัวละครหลักให้เหมือนเดิมทุกภาพ พร้อมระบุบริบทศิลปะไทย/อุบลราชธานีให้ชัดเจน\n`;
+  
+  document.getElementById('master-prompt-display').textContent = prompt;
+}
+
+function renderCredits() {
+  const d = state.data;
+  const html = `
+    <div class="option-card"><h3>ผลงานเรื่อง</h3><p>${d.ebookTitle || '-'}</p></div>
+    <div class="option-card"><h3>ผู้สร้างสรรค์</h3><p>${d.fullName} (${d.nickname})</p></div>
+    <div class="option-card"><h3>ระดับชั้น / ทีม</h3><p>${d.grade} / ${d.teamName}</p></div>
+  `;
+  document.getElementById('credits-display').innerHTML = html;
+}
+
+function updateUI() {
+  document.querySelectorAll('.step-section').forEach(el => el.classList.remove('active'));
+  document.querySelector(`[data-section="${state.step}"]`).classList.add('active');
+  renderStepper();
+  
+  const name = document.getElementById('nickname').value || document.getElementById('fullName').value;
+  document.getElementById('student-name-display').textContent = name ? `👤 ผู้สร้าง: ${name}` : 'ลงทะเบียนเพื่อเริ่มใช้งาน';
+  
+  if(state.step === 6) { collectData(); generateMasterPrompt(); }
+  if(state.step === 7) { collectData(); renderCredits(); }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goNext() { if(state.step < 7) { state.step++; updateUI(); } }
+function goPrev() { if(state.step > 1) { state.step--; updateUI(); } }
+
+function copyMasterPrompt() {
+  const text = document.getElementById('master-prompt-display').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  });
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
