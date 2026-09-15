@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เทียนปัญญา E-Book Builder | โรงเรียนเสียมทองพิทยาคม</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Chakra+Petch:wght@500;600;700&family=Noto+Serif+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Brand palette - ทองแดง-น้ำเงิน ไทยประยุกต์ */
+  --gold: #D4A574;
+  --gold-deep: #B8843E;
+  --gold-light: #F5E6D3;
+  --crimson: #C8423C;
+  --crimson-deep: #8B2826;
+  --ink: #1A1A2E;
+  --paper: #FAF6EE;
+  --paper-warm: #F2E8D5;
+  --teal: #2D5F6B;
+  --teal-light: #5B8B96;
+  --line: #E0D4B8;
+  --line-soft: #EFE6D0;
+  --shadow: 0 2px 8px rgba(184, 132, 62, 0.08);
+  --shadow-md: 0 4px 16px rgba(184, 132, 62, 0.12);
+  --shadow-lg: 0 12px 32px rgba(26, 26, 46, 0.12);
+  --radius: 10px;
+  --radius-lg: 18px;
+  --transition: 220ms cubic-bezier(.4,.0,.2,1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: 'Sarabun', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  min-height: 100vh;
+  line-height: 1.6;
+  font-feature-settings: "liga" 0, "dlig" 0, "kern" 1;
+  text-rendering: optimizeLegibility;
+}
+.step, .step * {
+  font-family: 'Sarabun', system-ui, -apple-system, sans-serif !important;
+  font-feature-settings: "liga" 0, "dlig" 0 !important;
+}
+
+/* ===== Layout ===== */
+.app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+header.topbar {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid var(--gold);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--shadow-md);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-logo {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--gold);
+}
+.brand-text h1 {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.brand-text p {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: -2px;
+}
+.session-info {
+  display: flex; align-items: center; gap: 16px;
+  font-size: 13px;
+}
+.session-info .step-pill {
+  background: var(--gold);
+  color: var(--ink);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* ===== Stepper ===== */
+.stepper {
+  background: var(--paper-warm);
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.step {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 13px;
+  color: var(--ink);
+  opacity: 0.6;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.step:hover { background: rgba(212, 165, 116, 0.15); opacity: 0.9; }
+.step.active {
+  background: var(--ink);
+  color: var(--paper);
+  opacity: 1;
+  font-weight: 600;
+}
+.step.done { opacity: 0.9; color: var(--crimson-deep); }
+.step.done::after { content: "✓"; margin-left: 4px; color: var(--crimson); }
+.step-num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.08);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+}
+.step.active .step-num { background: var(--gold); color: var(--ink); }
+.step.done .step-num { background: var(--crimson); color: var(--paper); }
+
+/* ===== Main ===== */
+main {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 32px 28px 60px;
+  width: 100%;
+}
+
+.step-section { display: none; }
+.step-section.active {
+  display: block;
+  animation: fadeUp 0.4s var(--transition);
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.section-header {
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 2px dashed var(--line);
+}
+.section-header .eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--crimson);
+  margin-bottom: 6px;
+}
+.section-header h2 {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.section-header p {
+  font-size: 15px;
+  color: #4a4a5e;
+  max-width: 720px;
+}
+
+/* ===== Cards / Options ===== */
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.option {
+  background: white;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.option:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+.option.selected {
+  border-color: var(--crimson);
+  background: linear-gradient(135deg, #fff 0%, #fff5f5 100%);
+  box-shadow: 0 0 0 3px rgba(200, 66, 60, 0.15);
+}
+.option.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 28px; height: 28px;
+  background: var(--crimson);
+  color: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+.option-visual {
+  height: 100px;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  position: relative;
+  overflow: hidden;
+}
+.option h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+.option p {
+  font-size: 13px;
+  color: #6a6a7a;
+  line-height: 1.5;
+}
+.option-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: var(--gold-light);
+  color: var(--gold-deep);
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+/* Visual previews for style options */
+.style-preview {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  position: relative;
+}
+.preview-gayp {
+  background: linear-gradient(135deg, #C8423C 0%, #8B2826 100%);
+  color: #F5E6D3;
+  font-family: 'Noto Serif Thai', serif;
+}
+.preview-anime {
+  background: linear-gradient(135deg, #FFD1DC 0%, #C5E3F6 100%);
+  color: #5B8B96;
+}
+.preview-webtoon {
+  background: linear-gradient(135deg, #FFE5B4 0%, #FFB6C1 100%);
+  color: #2D5F6B;
+}
+.preview-picturebook {
+  background: linear-gradient(135deg, #E8F4D8 0%, #FFF2D9 100%);
+  color: #B8843E;
+}
+.preview-infographic {
+  background: linear-gradient(135deg, #2D5F6B 0%, #5B8B96 100%);
+  color: #F5E6D3;
+}
+
+/* ===== Form fields ===== */
+.field {
+  display: flex; flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex; align-items: center; gap: 6px;
+}
+.field label .req { color: var(--crimson); }
+.field .hint {
+  font-size: 12px;
+  color: #8a8a9a;
+  font-style: italic;
+}
+.field input[type="text"],
+.field textarea,
+.field select {
+  font-family: inherit;
+  font-size: 15px;
+  padding: 12px 14px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background: white;
+  transition: var(--transition);
+  color: var(--ink);
+  width: 100%;
+}
+.field input:focus, .field textarea:focus, .field select:focus {
+  outline: none;
+  border-color: var(--gold-deep);
+  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.2);
+}
+.field textarea { min-height: 80px; resize: vertical; }
+.field-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+
+/* Character builder */
+.character-card {
+  background: white;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.character-card-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--line);
+}
+.character-card-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+}
+.character-avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  border: 2px solid var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.character-trait-picker {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 6px;
+}
+.trait-chip {
+  font-size: 12px;
+  padding: 5px 10px;
+  background: var(--paper-warm);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+}
+.trait-chip:hover { background: var(--gold-light); }
+.trait-chip.selected {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+/* Color swatches */
+.color-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.swatch {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition);
+}
+.swatch:hover { transform: scale(1.1); }
+.swatch.selected {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink);
+}
+
+/* ===== Story Builder (Plot + Storyboard) ===== */
+.plot-arc {
+  background: white;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.arc-title {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 12px;
+}
+.arc-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--gold-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.arc-title h3 { font-size: 18px; font-weight: 700; }
+.arc-description {
+  font-size: 14px;
+  color: #4a4a5e;
+  margin-bottom: 12px;
+}
+.arc-stages {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.stage {
+  background: var(--paper-warm);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.storyboard-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: white;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-top: 20px;
+}
+.storyboard-table th, .storyboard-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 13px;
+  vertical-align: top;
+}
+.storyboard-table th {
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.storyboard-table tr:hover td { background: var(--paper-warm); }
+.storyboard-table .page-num {
+  font-weight: 700;
+  color: var(--crimson);
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 14px;
+}
+.storyboard-table input, .storyboard-table textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 13px;
+  background: var(--paper);
+}
+.storyboard-table input:focus, .storyboard-table textarea:focus {
+  outline: none; border-color: var(--gold-deep);
+  background: white;
+}
+.storyboard-table textarea { min-height: 50px; resize: vertical; }
+
+/* ===== Output / Prompts ===== */
+.output-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 14px 20px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.output-bar h3 {
+  font-size: 15px;
+  font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+button {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary {
+  background: var(--crimson);
+  color: white;
+}
+.btn-primary:hover { background: var(--crimson-deep); transform: translateY(-1px); }
+.btn-secondary {
+  background: var(--paper-warm);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.btn-secondary:hover { background: var(--gold-light); }
+.btn-ghost {
+  background: transparent;
+  color: var(--paper);
+  border: 1px solid rgba(255,255,255,0.3);
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.1); }
+.btn-gold {
+  background: var(--gold);
+  color: var(--ink);
+}
+.btn-gold:hover { background: var(--gold-deep); color: white; }
+
+.btn-row-bottom {
+  display: flex; justify-content: space-between;
+  margin-top: 32px; padding-top: 20px;
+  border-top: 1px dashed var(--line);
+}
+
+.prompt-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  position: relative;
+}
+.prompt-card-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.prompt-page {
+  background: var(--crimson);
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-family: 'Chakra Petch', sans-serif;
+}
+.prompt-text {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 13px;
+  background: var(--ink);
+  color: #E0D4B8;
+  padding: 12px 14px;
+  border-radius: 6px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.copy-btn {
+  background: var(--paper-warm);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ink);
+}
+.copy-btn:hover { background: var(--gold-light); }
+.copy-btn.copied { background: var(--crimson); color: white; }
+
+/* ===== Navigation ===== */
+footer.bottombar {
+  background: var(--ink);
+  color: var(--paper);
+  text-align: center;
+  padding: 16px 28px;
+  font-size: 12px;
+  border-top: 3px solid var(--gold);
+}
+footer.bottombar a { color: var(--gold); text-decoration: none; }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  bottom: 30px; right: 30px;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: var(--transition);
+  z-index: 100;
+  border-left: 4px solid var(--crimson);
+  max-width: 360px;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== Help/info box ===== */
+.info-box {
+  background: linear-gradient(135deg, var(--gold-light) 0%, #FFFBF0 100%);
+  border-left: 4px solid var(--gold-deep);
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: #4a4a5e;
+  margin: 16px 0;
+}
+.info-box strong { color: var(--crimson-deep); }
+
+/* ===== Credits page ===== */
+.credits-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.credit-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.credit-card h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--crimson);
+  margin-bottom: 6px;
+}
+.credit-card p { font-size: 14px; font-weight: 600; }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .field-row { grid-template-columns: 1fr; }
+  .arc-stages { grid-template-columns: repeat(2, 1fr); }
+  .options-grid { grid-template-columns: 1fr; }
+  .section-header h2 { font-size: 24px; }
+  .brand-text h1 { font-size: 14px; }
+  .stepper { padding: 10px 16px; }
+  .step { font-size: 11px; padding: 6px 10px; }
+  main { padding: 20px 16px 40px; }
+}
+
+/* ===== Print ===== */
+@media print {
+  header.topbar, .stepper, .btn-row-bottom, footer.bottombar { display: none; }
+  .step-section { display: block !important; page-break-after: always; }
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-logo">🪔</div>
+    <div class="brand-text">
+      <h1>เทียนปัญญา E-Book Builder</h1>
+      <p>นวัตกรรมการเรียนรู้ &middot; โรงเรียนเสียมทองพิทยาคม</p>
+    </div>
+  </div>
+  <div class="session-info">
+    <span class="step-pill" id="current-step-pill">ขั้นที่ 1 จาก 7</span>
+    <span id="student-name-display">ยังไม่ได้ลงชื่อ</span>
+  </div>
+</header>
+
+<nav class="stepper" id="stepper">
+  <div class="step active" data-step="1"><span class="step-num">1</span>ข้อมูลนักเรียน</div>
+  <div class="step" data-step="2"><span class="step-num">2</span>ธีม & สไตล์</div>
+  <div class="step" data-step="3"><span class="step-num">3</span>ตัวละคร</div>
+  <div class="step" data-step="4"><span class="step-num">4</span>โครงเรื่อง</div>
+  <div class="step" data-step="5"><span class="step-num">5</span>Storyboard 12 หน้า</div>
+  <div class="step" data-step="6"><span class="step-num">6</span>สร้าง Prompt</div>
+  <div class="step" data-step="7"><span class="step-num">7</span>ส่งงาน & เครดิต</div>
+</nav>
+
+<main>
+
+<!-- ============ STEP 1: Student Info ============ -->
+<section class="step-section active" data-section="1">
+  <div class="section-header">
+    <div class="eyebrow">ขั้นที่ 1</div>
+    <h2>👋 ยินดีต้อนรับสู่การสร้าง e-book</h2>
+    <p>ก่อนเริ่มสร้าง e-book ด้วย AI น้องๆ ต้องลงทะเบียนก่อน เพื่อให้ครูทราบว่าใครเป็นคนสร้าง และสามารถติดตามผลงานได้</p>
+  </div>
+
+  <div class="info-box">
+    <strong>💡 เคล็ดลับ:</strong> ข้อมูลที่น้องกรอกจะปรากฏในหน้า "เครดิต" ของ e-book นะ ดังนั้นใส่ให้ครบถ้วนและถูกต้อง
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>ชื่อ-นามสกุล <span class="req">*</span></label>
+      <input type="text" id="fullName" placeholder="เช่น เด็กหญิงใจดี มานะ">
+    </div>
+    <div class="field">
+      <label>ชื่อเล่น <span class="req">*</span></label>
+      <input type="text" id="nickname" placeholder="เช่น ใจดี">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>ชั้น <span class="req">*</span></label>
+      <select id="grade">
+        <option value="">-- เลือกชั้น --</option>
+        <option value="ม.2/1">มัธยมศึกษาปีที่ 2/1</option>
+        <option value="ม.2/2">มัธยมศึกษาปีที่ 2/2</option>
+        <option value="ม.2/3">มัธยมศึกษาปีที่ 2/3</option>
+        <option value="ม.2/4">มัธยมศึกษาปีที่ 2/4</option>
+        <option value="ม.2/5">มัธยมศึกษาปีที่ 2/5</option>
+        <option value="อื่นๆ">อื่นๆ</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>เลขที่</label>
+      <input type="text" id="studentNo" placeholder="เช่น 5">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>กลุ่ม / ชื่อทีม <span class="req">*</span></label>
+    <input type="text" id="teamName" placeholder="เช่น ทีมเทียนแห่งปัญญา">
+    <span class="hint">ถ้าทำเดี่ยว ใส่ชื่อตัวเอง / ถ้าทำเป็นกลุ่ม ใส่ชื่อกลุ่ม</span>
+  </div>
+
+  <div class="field">
+    <label>สมาชิกในกลุ่ม (คนที่ร่วมสร้าง e-book) <span class="req">*</span></label>
+    <textarea id="teamMembers" placeholder="พิมพ์ชื่อ-นามสกุล คนละบรรทัด
+เช่น
+1. เด็กหญิงใจดี มานะ
+2. เด็กชายกล้าหาญ ใจกล้า
+3. เด็กหญิงสดใส แสงทอง"></textarea>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>ครูที่ปรึกษา</label>
+      <input type="text" id="advisor" value="นายสรวิศ  แหวนเงิน" placeholder="ชื่อครูที่ปรึกษา">
+    </div>
+    <div class="field">
+      <label>โรงเรียน</label>
+      <input type="text" id="school" value="โรงเรียนเสียมทองพิทยาคม" placeholder="ชื่อโรงเรียน">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>จังหวัด</label>
+      <input type="text" id="province" value="อุบลราชธานี">
+    </div>
+    <div class="field">
+      <label>ปีการศึกษา</label>
+      <input type="text" id="year" value="2569">
+    </div>
+  </div>
+
+  <div class="btn-row-bottom">
+    <div></div>
+    <button class="btn-primary" onclick="goNext()">ถัดไป: เลือกธีม & สไตล์ →</button>
+  </div>
+</section>
+
+<!-- ============ STEP 2: Theme & Style ============ -->
+<section class="step-section" data-section="2">
+  <div class="section-header">
+    <div class="eyebrow">ขั้นที่ 2</div>
+    <h2>🎨 เลือกธีม & สไตล์หนังสือ</h2>
+    <p>เลือก "คำถามที่อยากตอบ" ที่จะเป็นหัวใจของเรื่อง และเลือกสไตล์หนังสือที่น้องอยากเขียน</p>
+  </div>
+
+  <h3 style="font-size: 18px; margin-bottom: 8px;">📌 2.1 ธีม/คำถามหลัก</h3>
+  <p style="font-size: 14px; color: #4a4a5e; margin-bottom: 8px;">เลือกคำถามที่ทำให้น้อง "อยากเขียน" มากที่สุด (เลือกได้มากกว่า 1 ข้อ แล้วนำมาผสม)</p>
+  <div class="options-grid" id="theme-options">
+    <!-- Generated by JS -->
+  </div>
+
+  <div class="field" style="margin-top: 20px;">
+    <label>ธีมของน้อง (พิมพ์เอง) <span class="req">*</span></label>
+    <input type="text" id="customTheme" placeholder="เช่น เทียนพรรษากับความลับของลุงปู่ / การเดินทางข้ามเวลาไปหาช่างแกะเทียน">
+    <span class="hint">ถ้าเลือกข้างบนแล้วอยากเขียนเพิ่ม พิมพ์เพิ่มได้เลย</span>
+  </div>
+
+  <h3 style="font-size: 18px; margin: 32px 0 8px;">🎨 2.2 สไตล์หนังสือ</h3>
+  <p style="font-size: 14px; color: #4a4a5e; margin-bottom: 8px;">เลือกสไตล์ที่น้องอยากสร้าง — เลือกได้แค่ 1 สไตล์ต่อ e-book 1 เล่ม</p>
+  <div class="options-grid" id="style-options">
+    <!-- Generated by JS -->
+  </div>
+
+  <div class="field" style="margin-top: 20px;">
+    <label>ชื่อ e-book <span class="req">*</span></label>
+    <input type="text" id="ebookTitle" placeholder="เช่น เทียนแห่งความทรงจำ / ลุงทองกับเทียนวิเศษ / เทียนน้อยผจญภัย">
+  </div>
+
+  <div class="btn-row-bottom">
+    <button class="btn-secondary" onclick="goPrev()">← กลับ</button>
+    <button class="btn-primary" onclick="goNext()">ถัดไป: ออกแบบตัวละคร →</button>
+  </div>
+</section>
+
+<!-- ============ STEP 3: Character Builder ============ -->
+<section class="step-section" data-section="3">
+  <div class="section-header">
+    <div class="eyebrow">ขั้นที่ 3</div>
+    <h2>👥 ออกแบบตัวละคร</h2>
+    <p>สร้างตัวละครที่จะมาเป็น "คนเล่าเรื่อง" หรือ "ผู้ผจญภัย" ใน e-book ของน้อง</p>
+  </div>
+
+  <div class="info-box">
+    <strong>💡 ตัวละครที่ดี:</strong> น้องสามารถสร้าง 1-2 ตัวละครหลัก ตัวละครที่ดีควรมี "จุดเด่น" + "จุดอ่อน" + "สิ่งที่อยากเรียนรู้"
+  </div>
+
+  <div id="characters-container">
+    <!-- Generated by JS -->
+  </div>
+
+  <button class="btn-secondary" onclick="addCharacter()" style="margin-top: 8px;">+ เพิ่มตัวละคร</button>
+
+  <div class="btn-row-bottom">
+    <button class="btn-secondary" onclick="goPrev()">← กลับ</button>
+    <button class="btn-primary" onclick="goNext()">ถัดไป: ออกแบบโครงเรื่อง →</button>
+  </div>
+</section>
+
+<!-- ============ STEP 4: Plot Architecture ============ -->
+<section class="step-section" data-section="4">
+  <div class="section-header">
+    <div class="eyebrow">ขั้นที่ 4</div>
+    <h2>🗺️ ออกแบบโครงเรื่อง</h2>
+    <p>เลือกโครงสร้างเรื่อง 1 แบบ (หรือผสม) แล้วกำหนด "เส้นทาง" ของตัวละคร</p>
+  </div>
+
+  <h3 style="font-size: 18px; margin-bottom: 12px;">🎯 4.1 โครงสร้างเรื่อง (เลือก 1 หลัก + ผสมได้)</h3>
+  <div class="options-grid" id="plot-options">
+    <!-- Generated by JS -->
+  </div>
+
+  <h3 style="font-size: 18px; margin: 32px 0 12px;">🎯 4.2 องค์ประกอบสำคัญ</h3>
+  <div class="field">
+    <label>จุดเริ่มต้นของเรื่อง <span class="req">*</span></label>
+    <textarea id="plotStart" placeholder="เช่น น้องแก้วได้รับเทียนเล่มหนึ่งจากปู่ที่เพิ่งเสียชีวิต พร้อมจดหมายลึกลับ"></textarea>
+  </div>
+  <div class="field">
+    <label>จุดพีค / จุดพลิกผัน <span class="req">*</span></label>
+    <textarea id="plotClimax" placeholder="เช่น เมื่อน้องแก้วค้นพบว่าเทียนเล่มนี้มีพลังพาเธอย้อนเวลาไปพบปู่ในอดีต"></textarea>
+  </div>
+  <div class="field">
+    <label>ตอนจบ / บทเรียน <span class="req">*</span></label>
+    <textarea id="plotEnding" placeholder="เช่น น้องแก้วกลับมาปัจจุบันพร้อมความเข้าใจว่าเทียนพรรษาไม่ใช่แค่เทียน แต่คือหัวใจของชุมชน"></textarea>
+  </div>
+  <div class="field">
+    <label>สิ่งที่อยากให้ตัวละครเรียนรู้</label>
+    <textarea id="lessonLearned" placeholder="เช่น การอนุรักษ์ภูมิปัญญา ความรักในท้องถิ่น การเห็นคุณค่าในสิ่งที่มองข้าม"></textarea>
+  </div>
+  <div class="field">
+    <label>สิ่งที่อยากให้ผู้อ่านได้รับ</label>
+    <textarea id="readerTakeaway" placeholder="เช่น ผู้อ่านจะเข้าใจว่าเทียนพรรษาเป็นมากกว่าประเพณี คือหัวใจของชาวอีสาน และอยากให้ทุกคนช่วยกันอนุรักษ์"></textarea>
+  </div>
+
+  <div class="btn-row-bottom">
+    <button class="btn-secondary" onclick="goPrev()">← กลับ</button>
+    <button class="btn-primary" onclick="goNext()">ถัดไป: Storyboard 12 หน้า →</button>
+  </div>
+</section>
+
+<!-- ============ STEP 5: Storyboard ============ -->
+<section class="step-section" data-section="5">
+  <div class="section-header">
+    <div class="eyebrow">ขั้นที่ 5</div>
+    <h2>📖 Storyboard 12 หน้า</h2>
+    <p>เขียนเนื้อหาแต่ละหน้าให้สั้น กระชับ น่าสนใจ — 1 หน้าไม่ควรเกิน 3-5 บรรทัด</p>
+  </div>
+
+  <div class="info-box">
+    <strong>💡 เคล็ดลับ:</strong> ใช้ประโยคเปิดแบบ "หยุดโลก" (เช่น "เทียนไขเล่มหนึ่ง...กลิ่นหอมของมันลอยมาจากอดีต 1,000 ปี"), แทรกคำถามชวนคิด
+  </div>
+
+  <table class="storyboard-table" id="storyboard">
+    <thead>
+      <tr>
+        <th style="width: 80px;">หน้า</th>
+        <th>เนื้อหา (ภาษาไทย)</th>
+        <th style="width: 200px;">ชื่อภาพ / ฉาก</th>
+      </tr>
+    </thead>
+    <tbody id="storyboard-body">
+      <!-- Generated by JS -->
+    </tbody>
+  </table>
+
+  <div class="btn-row-bottom">
+    <button class="btn-secondary" onclick="goPrev()">← กลับ</button>
+    <button class="btn-primary" onclick="goNext()">ถัดไป: สร้าง Prompt →</button>
+  </div>
+</section>
+
+<!-- ============ STEP 6: Generate Prompts ============ -->
+<section class="step-section" data-section="6">
+  <div class="section-header">
+    <div class="eyebrow">ขั้นที่ 6</div>
+    <h2>🤖 สร้าง Prompt สำหรับ AI</h2>
+    <p>ชุด Prompt ระดับมืออาชีพที่จะนำไปใช้กับ AI สร้างภาพ เช่น Midjourney, DALL-E, Leonardo AI, Bing Image Creator</p>
+  </div>
+
+  <div class="output-bar">
+    <h3>📦 ชุด Prompt ของน้อง</h3>
+    <div class="btn-row">
+      <button class="btn-ghost" onclick="copyAll()">📋 คัดลอกทั้งหมด</button>
+      <button class="btn-gold" onclick="downloadPrompts()">💾 ดาวน์โหลด .txt</button>
+      <button class="btn-primary" onclick="saveData()">💾 บันทึก</button>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <strong>วิธีใช้:</strong> คัดลอก prompt แต่ละหน้า ไปวางใน AI สร้างภาพ (แนะนำ Leonardo AI, Midjourney, Bing) → ได้ภาพสวย → นำมาจัด e-book ใน Canva
+  </div>
+
+  <div id="prompts-container">
+    <!-- Generated by JS -->
+  </div>
+
+  <div class="btn-row-bottom">
+    <button class="btn-secondary" onclick="goPrev()">← กลับ</button>
+    <button class="btn-primary" onclick="goNext()">ถัดไป: ส่งงาน & เครดิต →</button>
+  </div>
+</section>
+
+<!-- ============ STEP 7: Submit & Credits ============ -->
+<section class="step-section" data-section="7">
+  <div class="section-header">
+    <div class="eyebrow">ขั้นที่ 7</div>
+    <h2>🎉 ส่งงาน & เครดิต</h2>
+    <p>ตรวจสอบข้อมูลทั้งหมด และบันทึกเครดิตเพื่อนำไปใส่ใน e-book</p>
+  </div>
+
+  <div class="output-bar">
+    <h3>📤 ส่งงานให้ครูตรวจ</h3>
+    <div class="btn-row">
+      <button class="btn-gold" onclick="downloadProject()">💾 ดาวน์โหลด JSON</button>
+      <button class="btn-ghost" onclick="printProject()">🖨️ พิมพ์</button>
+      <button class="btn-primary" onclick="submitToGoogleSheet()">📤 ส่งให้ครู</button>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <strong>🎯 ขั้นตอนถัดไปสำหรับนักเรียน:</strong>
+    <ol style="margin-left: 20px; margin-top: 8px;">
+      <li>นำ prompts ไปสร้างภาพด้วย AI (12 ภาพ)</li>
+      <li>นำภาพ + เนื้อหาไปจัดเล่มใน Canva / Google Slides</li>
+      <li>Export เป็น PDF</li>
+      <li>นำเสนอหน้าชั้นเรียน</li>
+      <li>อัปโหลดเข้า Google Drive / แพลตฟอร์มสาธารณะ</li>
+    </ol>
+  </div>
+
+  <h3 style="font-size: 18px; margin: 24px 0 8px;">📋 เครดิตที่จะปรากฏใน e-book</h3>
+  <p style="font-size: 13px; color: #6a6a7a; margin-bottom: 12px;">ข้อมูลนี้จะปรากฏในหน้าแรกและหน้าสุดท้ายของ e-book</p>
+
+  <div class="credits-grid" id="credits-display">
+    <!-- Generated by JS -->
+  </div>
+
+  <div class="btn-row-bottom">
+    <button class="btn-secondary" onclick="goPrev()">← กลับ</button>
+    <button class="btn-gold" onclick="restart()">🔄 เริ่มใหม่</button>
+  </div>
+</section>
+
+</main>
+
+<footer class="bottombar">
+  <p>นวัตกรรม "เทียนปัญญา" (THIAN Model) &middot; โรงเรียนเสียมทองพิทยาคม อำเภอเขื่องใน จังหวัดอุบลราชธานี &middot; ภาคเรียนที่ 1 ปีการศึกษา 2569</p>
+  <p style="margin-top: 6px; opacity: 0.6;">ครูผู้สอน: นายสรวิศ  แหวนเงิน | สังกัด สพม.อุบลราชธานี อำนาจเจริญ</p>
+</footer>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============== State ==============
+const state = {
+  currentStep: 1,
+  data: {
+    // Step 1
+    fullName: '',
+    nickname: '',
+    grade: '',
+    studentNo: '',
+    teamName: '',
+    teamMembers: '',
+    advisor: 'นายสรวิศ  แหวนเงิน',
+    school: 'โรงเรียนเสียมทองพิทยาคม',
+    province: 'อุบลราชธานี',
+    year: '2569',
+    // Step 2
+    themes: [],
+    customTheme: '',
+    ebookTitle: '',
+    selectedStyle: '',
+    // Step 3
+    characters: [],
+    // Step 4
+    plot: '',
+    plotStart: '',
+    plotClimax: '',
+    plotEnding: '',
+    lessonLearned: '',
+    readerTakeaway: '',
+    // Step 5
+    storyboard: [],
+  }
+};
+
+// ============== Data: Themes ==============
+const THEMES = [
+  { id: 'mystery', icon: '🔮', title: 'ความลี้ลับ', desc: 'เทียนเล่มนี้...มาจากไหน? ใครเป็นคนทำ? ทำไม?', color: '#9B59B6' },
+  { id: 'art', icon: '🎨', title: 'ศิลปะ & ฝีมือ', desc: 'ลวดลายเทียนบอกเล่าอะไรเกี่ยวกับชีวิตคนอีสาน?', color: '#E67E22' },
+  { id: 'time', icon: '⏰', title: 'กาลเวลา', desc: 'ถ้าย้อนเวลาไป 100 ปี เทียนพรรษาเป็นยังไง?', color: '#3498DB' },
+  { id: 'community', icon: '🤝', title: 'ชุมชน & ความเชื่อมโยง', desc: 'เทียนพรรษาเชื่อมโยงคนในชุมชนยังไง?', color: '#27AE60' },
+  { id: 'self', icon: '🌟', title: 'ตัวตนของฉัน', desc: 'ถ้าฉันเป็นช่างแกะเทียน ฉันจะแกะลายอะไร?', color: '#E74C3C' },
+  { id: 'belief', icon: '✨', title: 'ความเชื่อ & พลังศรัทธา', desc: 'ความเชื่อสร้างพลังอะไรให้คนในชุมชน?', color: '#F39C12' },
+  { id: 'craft', icon: '🪔', title: 'กระบวนการสร้าง', desc: 'ช่างคิดยังไงก่อนลงมือทำเทียน 1 เล่ม?', color: '#16A085' },
+  { id: 'future', icon: '🚀', title: 'อนาคตของเทียน', desc: 'เทียนพรรษาจะเป็นยังไงในยุค AI?', color: '#34495E' },
+];
+
+// ============== Data: Styles ==============
+const STYLES = [
+  { id: 'gayp', icon: '📜', title: 'กาพย์/กลอน (ไทยโบราณ)', desc: 'ภาษากาพย์ไทย ภาพสไตล์จิตรกรรมไทยประยุกต์ สีทอง-แดง-น้ำเงิน', previewClass: 'preview-gayp', keywords: 'Thai traditional art, golden crimson, royal Thai mural, intricate patterns, masterpiece' },
+  { id: 'anime', icon: '✨', title: 'Anime ญี่ปุ่น (สไตล์ไทย)', desc: 'ตัวละครอนิเมะ ตาโต สี pastel สตูดิโอ Ghibli + ลายไทย', previewClass: 'preview-anime', keywords: 'Studio Ghibli anime style, Thai elements, pastel colors, big eyes, magical, masterpiece' },
+  { id: 'webtoon', icon: '📱', title: 'Webtoon เกาหลี', desc: 'ภาพแนวตั้ง สีสดใส sharp line art ดูง่ายบนมือถือ', previewClass: 'preview-webtoon', keywords: 'Korean webtoon style, vertical composition, vibrant colors, sharp line art, manhwa' },
+  { id: 'picturebook', icon: '📖', title: 'หนังสือภาพ (Picture Book)', desc: 'ภาพเต็มหน้า คำสั้น สีน้ำ pastel อบอุ่น เหมาะทุกวัย', previewClass: 'preview-picturebook', keywords: 'children picture book illustration, soft watercolor, pastel colors, heartwarming, hand-painted' },
+  { id: 'infographic', icon: '📊', title: 'Infographic (สารพัด)', desc: 'ผสมภาพ กราฟ แผนภาพ icon สีสด ดูง่าย', previewClass: 'preview-infographic', keywords: 'infographic style, clean vector art, bold colors, icon-based, modern educational' },
+];
+
+// ============== Data: Plots ==============
+const PLOTS = [
+  { id: 'time', icon: '⏳', title: 'การเดินทางข้ามเวลา', desc: 'ตัวเอกย้อนเวลาไปพบที่มาของเทียนพรรษา แล้วกลับมาเข้าใจปัจจุบัน', stages: ['จุดเริ่มต้น (ปัจจุบัน)', 'การเดินทาง (ย้อนเวลา)', 'การเรียนรู้ (พบช่าง)', 'อุปสรรค', 'กลับมาพร้อมบทเรียน'] },
+  { id: 'mystery', icon: '🔍', title: 'การสืบสวนปริศนา', desc: 'ตัวเอกตามหาความจริงเบื้องหลังเทียนเล่มหนึ่ง / เหตุการณ์ปริศนา', stages: ['พบปริศนา', 'สืบหาเบาะแส', 'ค้นพบหลักฐาน', 'จุดพลิกผัน', 'เปิดเผยความจริง'] },
+  { id: 'coming', icon: '💫', title: 'การเปลี่ยนแปลงของตัวละคร', desc: 'ตัวเอกไม่สนใจ → ถูกบังคับ → ลงมือทำ → ผูกพัน → อยากสืบสาน', stages: ['ก่อนเริ่ม (ไม่แคร์)', 'จุดเปลี่ยน', 'การเรียนรู้', 'ช่วงเวลาสำคัญ', 'ตัวตนใหม่'] },
+  { id: 'journey', icon: '🗺️', title: 'การผจญภัยค้นหา', desc: 'ตัวเอกออกเดินทางไปตามหาสิ่งลี้ลับที่เกี่ยวกับเทียนพรรษา', stages: ['ออกเดินทาง', 'พบผู้คน/สถานที่', 'เผชิญอุปสรรค', 'ค้นพบสิ่งสำคัญ', 'กลับบ้านพร้อมของขวัญ'] },
+];
+
+// ============== Data: Character traits ==============
+const TRAITS = {
+  personality: ['ซุ่มซ่าม', 'กล้าหาญ', 'ขี้สงสัย', 'เงียบขรึม', 'ตลก', '�ริงจัง', 'ใจดี', 'ซน', 'ฉลาด', 'เจ้าคิดเจ้าแคล่ว'],
+  ability: ['สังเกตเก่ง', 'วาดรูปสวย', 'เล่าเรื่องเก่ง', 'แก้ปริศนาเก่ง', 'ร้องเพลงเพราะ', 'เล่นดนตรีเป็น', 'ทำอาหารเก่ง', 'ปีนเขาเก่ง', 'พูดต่างถิ่นได้', 'ใช้ AI เป็น'],
+  weakness: ['ขี้กลัว', 'ใจร้อน', 'ขี้ลืม', 'ขาดความมั่นใจ', 'เก็บตัว', 'ชอบทำของหาย', 'ไม่ค่อยฟังคนอื่น', 'ขี้แพ้', 'ขาดความอดทน', 'เห็นแก่ตัว'],
+  color: ['#C8423C', '#D4A574', '#2D5F6B', '#5B8B96', '#8B2826', '#F5E6D3', '#27AE60', '#3498DB', '#9B59B6', '#E67E22'],
+};
+
+// Storyboard page templates
+const PAGE_TEMPLATES = [
+  { num: 1, label: 'ปก', hint: 'ชื่อหนังสือ + ชื่อผู้แต่ง + ภาพปกสวยๆ' },
+  { num: 2, label: 'คำนำ', hint: 'ผู้แต่งแนะนำตัว ทำไมถึงสนใจเรื่องนี้' },
+  { num: 3, label: 'ตัวละคร', hint: 'แนะนำตัวละครหลัก' },
+  { num: 4, label: 'ปมปัญหา', hint: 'เกิดอะไรขึ้น? ตั้งคำถามชวนตื่นเต้น' },
+  { num: 5, label: 'การเดินทาง/เริ่มต้น', hint: 'ตัวเอกเริ่มออกเดินทาง' },
+  { num: 6, label: 'พบสิ่งใหม่', hint: 'เรียนรู้สิ่งใหม่: ประวัติ/กระบวนการทำ' },
+  { num: 7, label: 'ลองทำด้วยตัวเอง', hint: 'ตัวเอกลองทำ' },
+  { num: 8, label: 'อุปสรรค', hint: 'เกิดปัญหา!' },
+  { num: 9, label: 'ผู้ช่วย/ทางออก', hint: 'พบคนช่วย / ไอเดียใหม่' },
+  { num: 10, label: 'ความสำเร็จ', hint: 'สำเร็จ!' },
+  { num: 11, label: 'บทเรียน', hint: 'สรุปสิ่งที่เรียนรู้' },
+  { num: 12, label: 'จบ/ชวนคิดต่อ', hint: 'จบแบบเปิด + เครดิต' },
+];
+
+// ============== Init ==============
+function init() {
+  // Load from localStorage
+  const saved = localStorage.getItem('thian-ebook-builder');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      Object.assign(state.data, data);
+      restoreFormValues();
+    } catch (e) { console.error(e); }
+  }
+
+  renderThemes();
+  renderStyles();
+  renderPlots();
+  renderStoryboard();
+  renderCharacters();
+  if (state.data.characters.length === 0) addCharacter();
+
+  // Add a default character
+  updateStepDisplay();
+}
+
+function saveData() {
+  collectFormData();
+  localStorage.setItem('thian-ebook-builder', JSON.stringify(state.data));
+  showToast('✅ บันทึกข้อมูลเรียบร้อย');
+}
+
+function restoreFormValues() {
+  const d = state.data;
+  setVal('fullName', d.fullName);
+  setVal('nickname', d.nickname);
+  setVal('grade', d.grade);
+  setVal('studentNo', d.studentNo);
+  setVal('teamName', d.teamName);
+  setVal('teamMembers', d.teamMembers);
+  setVal('advisor', d.advisor);
+  setVal('school', d.school);
+  setVal('province', d.province);
+  setVal('year', d.year);
+  setVal('customTheme', d.customTheme);
+  setVal('ebookTitle', d.ebookTitle);
+  setVal('plotStart', d.plotStart);
+  setVal('plotClimax', d.plotClimax);
+  setVal('plotEnding', d.plotEnding);
+  setVal('lessonLearned', d.lessonLearned);
+  setVal('readerTakeaway', d.readerTakeaway);
+}
+
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.value = val || '';
+}
+
+function collectFormData() {
+  ['fullName','nickname','grade','studentNo','teamName','teamMembers','advisor','school','province','year','customTheme','ebookTitle','plotStart','plotClimax','plotEnding','lessonLearned','readerTakeaway'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) state.data[id] = el.value;
+  });
+  // Collect characters
+  state.data.characters = state.data.characters.map((c, i) => {
+    return {
+      name: getInputVal(`char-name-${i}`),
+      age: getInputVal(`char-age-${i}`),
+      role: getInputVal(`char-role-${i}`),
+      personality: getInputVal(`char-personality-${i}`),
+      ability: getInputVal(`char-ability-${i}`),
+      weakness: getInputVal(`char-weakness-${i}`),
+      goal: getInputVal(`char-goal-${i}`),
+      learning: getInputVal(`char-learning-${i}`),
+      clothing: getInputVal(`char-clothing-${i}`),
+      signature: getInputVal(`char-signature-${i}`),
+      color: c.color || '#C8423C',
+    };
+  });
+  // Collect storyboard
+  state.data.storyboard = PAGE_TEMPLATES.map((p, i) => ({
+    page: p.num,
+    label: p.label,
+    content: getInputVal(`sb-content-${i}`),
+    scene: getInputVal(`sb-scene-${i}`),
+  }));
+}
+
+function getInputVal(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : '';
+}
+
+// ============== Navigation ==============
+function goNext() {
+  collectFormData();
+  if (!validateCurrentStep()) return;
+  if (state.currentStep < 7) {
+    state.currentStep++;
+    if (state.currentStep === 6) renderPrompts();
+    if (state.currentStep === 7) renderCredits();
+    updateStepDisplay();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function goPrev() {
+  collectFormData();
+  if (state.currentStep > 1) {
+    state.currentStep--;
+    updateStepDisplay();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function goToStep(n) {
+  collectFormData();
+  if (n >= 1 && n <= 7) {
+    state.currentStep = n;
+    if (n === 6) renderPrompts();
+    if (n === 7) renderCredits();
+    updateStepDisplay();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function updateStepDisplay() {
+  // Show current section
+  document.querySelectorAll('.step-section').forEach(s => s.classList.remove('active'));
+  const sec = document.querySelector(`[data-section="${state.currentStep}"]`);
+  if (sec) sec.classList.add('active');
+
+  // Update stepper
+  document.querySelectorAll('.step').forEach(s => {
+    s.classList.remove('active', 'done');
+    const n = parseInt(s.dataset.step);
+    if (n === state.currentStep) s.classList.add('active');
+    else if (n < state.currentStep) s.classList.add('done');
+  });
+
+  // Update header
+  const pill = document.getElementById('current-step-pill');
+  if (pill) pill.textContent = `ขั้นที่ ${state.currentStep} จาก 7`;
+
+  // Show student name
+  const nameEl = document.getElementById('student-name-display');
+  if (nameEl) nameEl.textContent = state.data.nickname ? `👤 ${state.data.nickname}` : (state.data.fullName ? `👤 ${state.data.fullName}` : 'ยังไม่ได้ลงชื่อ');
+}
+
+function validateCurrentStep() {
+  collectFormData();
+  const d = state.data;
+  if (state.currentStep === 1) {
+    if (!d.fullName) { showToast('⚠️ กรุณากรอกชื่อ-นามสกุล'); return false; }
+    if (!d.nickname) { showToast('⚠️ กรุณากรอกชื่อเล่น'); return false; }
+    if (!d.grade) { showToast('⚠️ กรุณาเลือกชั้น'); return false; }
+    if (!d.teamName) { showToast('⚠️ กรุณากรอกชื่อกลุ่ม/ทีม'); return false; }
+    if (!d.teamMembers) { showToast('⚠️ กรุณากรอกสมาชิกในกลุ่ม'); return false; }
+  }
+  if (state.currentStep === 2) {
+    if (d.themes.length === 0 && !d.customTheme) { showToast('⚠️ กรุณาเลือกธีมอย่างน้อย 1 ข้อ หรือพิมพ์ธีมเอง'); return false; }
+    if (!d.ebookTitle) { showToast('⚠️ กรุณาตั้งชื่อ e-book'); return false; }
+    if (!d.selectedStyle) { showToast('⚠️ กรุณาเลือกสไตล์หนังสือ'); return false; }
+  }
+  if (state.currentStep === 3) {
+    if (d.characters.length === 0) { showToast('⚠️ กรุณาสร้างตัวละครอย่างน้อย 1 ตัว'); return false; }
+    const c = d.characters[0];
+    if (!c.name) { showToast('⚠️ กรุณากรอกชื่อตัวละครหลัก'); return false; }
+  }
+  if (state.currentStep === 4) {
+    if (!d.plot) { showToast('⚠️ กรุณาเลือกโครงสร้างเรื่อง'); return false; }
+    if (!d.plotStart) { showToast('⚠️ กรุณาเขียนจุดเริ่มต้นของเรื่อง'); return false; }
+    if (!d.plotClimax) { showToast('⚠️ กรุณาเขียนจุดพีค'); return false; }
+    if (!d.plotEnding) { showToast('⚠️ กรุณาเขียนตอนจบ'); return false; }
+  }
+  if (state.currentStep === 5) {
+    const filled = d.storyboard.filter(s => s.content && s.content.trim()).length;
+    if (filled < 8) { showToast(`⚠️ กรุณาเขียนเนื้อหาอย่างน้อย 8 หน้า (ตอนนี้ ${filled} หน้า)`); return false; }
+  }
+  return true;
+}
+
+// ============== Render: Themes ==============
+function renderThemes() {
+  const container = document.getElementById('theme-options');
+  if (!container) return;
+  container.innerHTML = THEMES.map(t => `
+    <div class="option ${state.data.themes.includes(t.id) ? 'selected' : ''}" data-id="${t.id}" onclick="toggleTheme('${t.id}')">
+      <div class="option-visual" style="background: linear-gradient(135deg, ${t.color}33, ${t.color}66); color: ${t.color};">${t.icon}</div>
+      <h3>${t.title}</h3>
+      <p>${t.desc}</p>
+    </div>
+  `).join('');
+}
+
+function toggleTheme(id) {
+  const idx = state.data.themes.indexOf(id);
+  if (idx === -1) state.data.themes.push(id);
+  else state.data.themes.splice(idx, 1);
+  renderThemes();
+}
+
+// ============== Render: Styles ==============
+function renderStyles() {
+  const container = document.getElementById('style-options');
+  if (!container) return;
+  container.innerHTML = STYLES.map(s => `
+    <div class="option ${state.data.selectedStyle === s.id ? 'selected' : ''}" data-id="${s.id}" onclick="selectStyle('${s.id}')">
+      <div class="option-visual"><div class="style-preview ${s.previewClass}">${s.icon}</div></div>
+      <h3>${s.title}</h3>
+      <p>${s.desc}</p>
+    </div>
+  `).join('');
+}
+
+function selectStyle(id) {
+  state.data.selectedStyle = id;
+  renderStyles();
+}
+
+// ============== Render: Plots ==============
+function renderPlots() {
+  const container = document.getElementById('plot-options');
+  if (!container) return;
+  container.innerHTML = PLOTS.map(p => `
+    <div class="plot-arc ${state.data.plot === p.id ? 'selected' : ''}" style="${state.data.plot === p.id ? 'border-color: var(--crimson); background: linear-gradient(135deg, #fff 0%, #fff5f5 100%);' : ''}">
+      <div class="arc-title">
+        <div class="arc-icon">${p.icon}</div>
+        <h3>${p.title}</h3>
+      </div>
+      <p class="arc-description">${p.desc}</p>
+      <div class="arc-stages">
+        ${p.stages.map(s => `<div class="stage">${s}</div>`).join('')}
+      </div>
+      <button class="${state.data.plot === p.id ? 'btn-primary' : 'btn-secondary'}" style="margin-top: 12px; width: 100%;" onclick="selectPlot('${p.id}')">
+        ${state.data.plot === p.id ? '✓ เลือกอยู่' : 'เลือกโครงสร้างนี้'}
+      </button>
+    </div>
+  `).join('');
+}
+
+function selectPlot(id) {
+  state.data.plot = id;
+  renderPlots();
+}
+
+// ============== Render: Characters ==============
+function renderCharacters() {
+  const container = document.getElementById('characters-container');
+  if (!container) return;
+  container.innerHTML = state.data.characters.map((c, i) => `
+    <div class="character-card">
+      <div class="character-card-header">
+        <h3>ตัวละครที่ ${i + 1}</h3>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="character-avatar" style="background: linear-gradient(135deg, ${c.color}33, ${c.color}); color: ${c.color};">${c.name ? c.name[0] : '?'}</div>
+          ${state.data.characters.length > 1 ? `<button class="btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="removeCharacter(${i})">ลบ</button>` : ''}
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>ชื่อตัวละคร <span class="req">*</span></label>
+          <input type="text" id="char-name-${i}" value="${c.name || ''}" placeholder="เช่น น้องแก้ว, ลุงทอง, เทียนน้อย" oninput="updateChar(${i}, 'name', this.value)">
+        </div>
+        <div class="field">
+          <label>อายุ</label>
+          <input type="text" id="char-age-${i}" value="${c.age || ''}" placeholder="เช่น 14, 72">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>บทบาท</label>
+          <select id="char-role-${i}">
+            <option value="">-- เลือก --</option>
+            <option value="main" ${c.role === 'main' ? 'selected' : ''}>ตัวเอก</option>
+            <option value="side" ${c.role === 'side' ? 'selected' : ''}>ตัวประกอบ</option>
+            <option value="mentor" ${c.role === 'mentor' ? 'selected' : ''}>ที่ปรึกษา/ครู</option>
+            <option value="magic" ${c.role === 'magic' ? 'selected' : ''}>ตัวละครมหัศจรรย์</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>สีประจำตัว</label>
+          <div class="color-row" id="color-row-${i}">
+            ${TRAITS.color.map(col => `<div class="swatch ${c.color === col ? 'selected' : ''}" style="background: ${col};" onclick="setCharColor(${i}, '${col}')"></div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>บุคลิกภาพ</label>
+        <div class="character-trait-picker" id="personality-picker-${i}">
+          ${TRAITS.personality.map(t => `<div class="trait-chip ${(c.personality || '').includes(t) ? 'selected' : ''}" onclick="toggleTrait(${i}, 'personality', '${t}', this)">${t}</div>`).join('')}
+        </div>
+        <input type="text" id="char-personality-${i}" value="${c.personality || ''}" placeholder="หรือพิมพ์เอง..." style="margin-top: 6px;">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>ความสามารถพิเศษ</label>
+          <div class="character-trait-picker" id="ability-picker-${i}">
+            ${TRAITS.ability.map(t => `<div class="trait-chip ${(c.ability || '').includes(t) ? 'selected' : ''}" onclick="toggleTrait(${i}, 'ability', '${t}', this)">${t}</div>`).join('')}
+          </div>
+          <input type="text" id="char-ability-${i}" value="${c.ability || ''}" placeholder="หรือพิมพ์เอง..." style="margin-top: 6px;">
+        </div>
+        <div class="field">
+          <label>จุดอ่อน / ความกลัว</label>
+          <div class="character-trait-picker" id="weakness-picker-${i}">
+            ${TRAITS.weakness.map(t => `<div class="trait-chip ${(c.weakness || '').includes(t) ? 'selected' : ''}" onclick="toggleTrait(${i}, 'weakness', '${t}', this)">${t}</div>`).join('')}
+          </div>
+          <input type="text" id="char-weakness-${i}" value="${c.weakness || ''}" placeholder="หรือพิมพ์เอง..." style="margin-top: 6px;">
+        </div>
+      </div>
+      <div class="field">
+        <label>เป้าหมายในเรื่อง</label>
+        <input type="text" id="char-goal-${i}" value="${c.goal || ''}" placeholder="เช่น ค้นหาที่มาของเทียนเล่มลึกลับ">
+      </div>
+      <div class="field">
+        <label>สิ่งที่ตัวละครเรียนรู้</label>
+        <input type="text" id="char-learning-${i}" value="${c.learning || ''}" placeholder="เช่น คุณค่าของภูมิปัญญาท้องถิ่น">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>เสื้อผ้า/เครื่องแต่งกาย</label>
+          <input type="text" id="char-clothing-${i}" value="${c.clothing || ''}" placeholder="เช่น ใส่ชุดไทยประยุกต์สีฟ้า">
+        </div>
+        <div class="field">
+          <label>ท่าทาง signature</label>
+          <input type="text" id="char-signature-${i}" value="${c.signature || ''}" placeholder="เช่น ยืนกอดอก ยิ้มมุมปาก">
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addCharacter() {
+  if (state.data.characters.length >= 3) { showToast('⚠️ สร้างได้สูงสุด 3 ตัวละคร'); return; }
+  state.data.characters.push({
+    name: '', age: '', role: '', personality: '', ability: '', weakness: '',
+    goal: '', learning: '', clothing: '', signature: '', color: '#C8423C'
+  });
+  renderCharacters();
+}
+
+function removeCharacter(i) {
+  state.data.characters.splice(i, 1);
+  renderCharacters();
+}
+
+function setCharColor(i, color) {
+  state.data.characters[i].color = color;
+  renderCharacters();
+}
+
+function toggleTrait(i, field, trait, el) {
+  const current = state.data.characters[i][field] || '';
+  const traits = current.split(',').map(t => t.trim()).filter(Boolean);
+  const idx = traits.indexOf(trait);
+  if (idx === -1) traits.push(trait);
+  else traits.splice(idx, 1);
+  state.data.characters[i][field] = traits.join(', ');
+  if (el) el.classList.toggle('selected');
+  // Also update the input field
+  const input = document.getElementById(`char-${field}-${i}`);
+  if (input) input.value = state.data.characters[i][field];
+}
+
+function updateChar(i, field, value) {
+  state.data.characters[i][field] = value;
+  if (field === 'name') {
+    // Update avatar
+    const avatars = document.querySelectorAll('.character-card .character-avatar');
+    if (avatars[i]) avatars[i].textContent = value[0] || '?';
+  }
+}
+
+// ============== Render: Storyboard ==============
+function renderStoryboard() {
+  const tbody = document.getElementById('storyboard-body');
+  if (!tbody) return;
+  if (state.data.storyboard.length === 0) {
+    state.data.storyboard = PAGE_TEMPLATES.map(p => ({ page: p.num, label: p.label, content: '', scene: '' }));
+  }
+  tbody.innerHTML = state.data.storyboard.map((s, i) => `
+    <tr>
+      <td>
+        <div class="page-num">หน้า ${s.page}</div>
+        <div style="font-size: 11px; color: #6a6a7a; margin-top: 4px;">${s.label}</div>
+        <div style="font-size: 10px; color: #8a8a9a; margin-top: 2px; font-style: italic;">${PAGE_TEMPLATES[i].hint}</div>
+      </td>
+      <td>
+        <textarea id="sb-content-${i}" placeholder="เขียนเนื้อหาหน้านี้ (2-4 บรรทัด)">${s.content || ''}</textarea>
+      </td>
+      <td>
+        <input type="text" id="sb-scene-${i}" placeholder="เช่น เทียนเล่มลึกลับ / ช่างกำลังแกะสลัก" value="${s.scene || ''}">
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ============== Render: Prompts ==============
+function renderPrompts() {
+  collectFormData();
+  const container = document.getElementById('prompts-container');
+  if (!container) return;
+
+  const style = STYLES.find(s => s.id === state.data.selectedStyle);
+  const styleKeywords = style ? style.keywords : '';
+  const styleTitle = style ? style.title : '';
+  const char = state.data.characters[0] || { name: 'ตัวละครหลัก', clothing: '', color: '#C8423C' };
+  const allChars = state.data.characters.map(c => c.name).filter(Boolean).join(', ');
+
+  container.innerHTML = state.data.storyboard.map((s, i) => {
+    const promptText = buildPrompt(s, i, styleKeywords, char, allChars);
+    return `
+      <div class="prompt-card">
+        <div class="prompt-card-head">
+          <span class="prompt-page">หน้า ${s.page} — ${s.label}</span>
+          <button class="copy-btn" onclick="copyPrompt(${i})">📋 คัดลอก</button>
+        </div>
+        <div class="prompt-text" id="prompt-${i}">${escapeHtml(promptText)}</div>
+        ${s.content ? `<p style="margin-top: 8px; font-size: 12px; color: #6a6a7a;"><strong>เนื้อหา:</strong> ${escapeHtml(s.content)}</p>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function buildPrompt(page, idx, styleKeywords, char, allChars) {
+  const scene = page.scene || 'Thai traditional scene';
+  const content = page.content || '';
+  const title = state.data.ebookTitle || 'Thai Wax Candle Story';
+  const style = STYLES.find(s => s.id === state.data.selectedStyle);
+  const province = state.data.province || 'Ubon Ratchathani';
+  const theme = state.data.customTheme || (state.data.themes.length > 0 ? THEMES.find(t => t.id === state.data.themes[0])?.title : '');
+
+  // Build detailed prompt based on style
+  const baseElements = [
+    `${scene}`,
+    content ? `depicting: ${content}` : '',
+    `character: ${char.name || 'main character'} (${char.clothing || 'traditional Thai attire'})`,
+    allChars && allChars !== char.name ? `supporting characters: ${allChars}` : '',
+    `cultural context: ${province} Thailand, Thai Isan region`,
+    `traditional Thai wax candle (Thien Phansa) elements`,
+    `occasion: Buddhist Lent candle festival`,
+    `style: ${styleKeywords}`,
+    `lighting: warm cinematic lighting, dramatic atmosphere`,
+    `composition: ${idx === 0 ? 'cinematic wide shot' : idx === state.data.storyboard.length - 1 ? 'pull-back final shot' : 'medium shot with character focus'}`,
+    `emotion: ${page.page === 1 ? 'mysterious' : page.page === 4 ? 'suspenseful' : page.page === 8 ? 'dramatic' : page.page === 10 ? 'triumphant' : 'engaging'}`,
+    `quality: highly detailed, masterpiece, award-winning illustration, 4K, 8K resolution`,
+    `--ar 3:4 --v 6` // Midjourney aspect ratio for portrait
+  ].filter(Boolean);
+
+  return baseElements.join(', ');
+}
+
+function copyPrompt(idx) {
+  const text = document.getElementById(`prompt-${idx}`).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(`📋 คัดลอก Prompt หน้า ${state.data.storyboard[idx].page} แล้ว`);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('📋 คัดลอกแล้ว');
+  });
+}
+
+function copyAll() {
+  collectFormData();
+  const style = STYLES.find(s => s.id === state.data.selectedStyle);
+  const styleKeywords = style ? style.keywords : '';
+  const char = state.data.characters[0] || { name: 'ตัวละครหลัก', clothing: '', color: '#C8423C' };
+  const allChars = state.data.characters.map(c => c.name).filter(Boolean).join(', ');
+
+  const allText = state.data.storyboard.map((s, i) => {
+    const promptText = buildPrompt(s, i, styleKeywords, char, allChars);
+    return `=== หน้า ${s.page}: ${s.label} ===\n${s.content ? 'เนื้อหา: ' + s.content + '\n' : ''}Prompt: ${promptText}\n`;
+  }).join('\n');
+
+  navigator.clipboard.writeText(allText).then(() => {
+    showToast('📋 คัดลอก Prompt ทั้ง 12 หน้าแล้ว');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = allText;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('📋 คัดลอกแล้ว');
+  });
+}
+
+function downloadPrompts() {
+  collectFormData();
+  const style = STYLES.find(s => s.id === state.data.selectedStyle);
+  const styleKeywords = style ? style.keywords : '';
+  const char = state.data.characters[0] || { name: 'ตัวละครหลัก', clothing: '', color: '#C8423C' };
+  const allChars = state.data.characters.map(c => c.name).filter(Boolean).join(', ');
+
+  let txt = `E-BOOK PROMPTS - ${state.data.ebookTitle}\n`;
+  txt += `นักเรียน: ${state.data.fullName} (${state.data.nickname})\n`;
+  txt += `กลุ่ม: ${state.data.teamName}\n`;
+  txt += `โรงเรียน: ${state.data.school}\n`;
+  txt += `สไตล์: ${style ? style.title : '-'}\n`;
+  txt += `\n${'='.repeat(60)}\n\n`;
+
+  state.data.storyboard.forEach((s, i) => {
+    const promptText = buildPrompt(s, i, styleKeywords, char, allChars);
+    txt += `[หน้า ${s.page}: ${s.label}]\n`;
+    if (s.content) txt += `เนื้อหา: ${s.content}\n`;
+    if (s.scene) txt += `ฉาก: ${s.scene}\n`;
+    txt += `\nPrompt:\n${promptText}\n\n`;
+    txt += `${'-'.repeat(60)}\n\n`;
+  });
+
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `prompts-${state.data.nickname || 'ebook'}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('💾 ดาวน์โหลดไฟล์ .txt แล้ว');
+}
+
+// ============== Render: Credits ==============
+function renderCredits() {
+  collectFormData();
+  const container = document.getElementById('credits-display');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="credit-card">
+      <h4>ชื่อ e-book</h4>
+      <p>${state.data.ebookTitle || '-'}</p>
+    </div>
+    <div class="credit-card">
+      <h4>ผู้สร้าง</h4>
+      <p>${state.data.fullName || '-'}</p>
+      <p style="font-size: 12px; color: #6a6a7a;">(${state.data.nickname || '-'})</p>
+    </div>
+    <div class="credit-card">
+      <h4>ชั้น / เลขที่</h4>
+      <p>${state.data.grade || '-'}${state.data.studentNo ? ' เลขที่ ' + state.data.studentNo : ''}</p>
+    </div>
+    <div class="credit-card">
+      <h4>กลุ่ม / ทีม</h4>
+      <p>${state.data.teamName || '-'}</p>
+    </div>
+    <div class="credit-card">
+      <h4>สมาชิกกลุ่ม</h4>
+      <p style="white-space: pre-line; font-size: 13px;">${state.data.teamMembers || '-'}</p>
+    </div>
+    <div class="credit-card">
+      <h4>ครูที่ปรึกษา</h4>
+      <p>${state.data.advisor || '-'}</p>
+    </div>
+    <div class="credit-card">
+      <h4>โรงเรียน</h4>
+      <p>${state.data.school || '-'}</p>
+      <p style="font-size: 12px; color: #6a6a7a;">จ.${state.data.province || '-'}</p>
+    </div>
+    <div class="credit-card">
+      <h4>ภาคเรียน / ปีการศึกษา</h4>
+      <p>ภาคเรียนที่ 1 / ${state.data.year || '-'}</p>
+    </div>
+    <div class="credit-card">
+      <h4>สไตล์หนังสือ</h4>
+      <p>${STYLES.find(s => s.id === state.data.selectedStyle)?.title || '-'}</p>
+    </div>
+    <div class="credit-card">
+      <h4>ธีมหลัก</h4>
+      <p>${state.data.customTheme || (state.data.themes.length > 0 ? THEMES.filter(t => state.data.themes.includes(t.id)).map(t => t.title).join(', ') : '-')}</p>
+    </div>
+    <div class="credit-card">
+      <h4>โครงสร้างเรื่อง</h4>
+      <p>${PLOTS.find(p => p.id === state.data.plot)?.title || '-'}</p>
+    </div>
+    <div class="credit-card">
+      <h4>ตัวละคร</h4>
+      <p>${state.data.characters.map(c => c.name).filter(Boolean).join(', ') || '-'}</p>
+    </div>
+  `;
+}
+
+function downloadProject() {
+  collectFormData();
+  const json = JSON.stringify(state.data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ebook-project-${state.data.nickname || 'data'}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('💾 ดาวน์โหลด JSON แล้ว');
+}
+
+function printProject() {
+  window.print();
+}
+
+function submitToGoogleSheet() {
+  // Placeholder - will need to set the Google Apps Script URL
+  const url = localStorage.getItem('gas-webapp-url') || '';
+  if (!url) {
+    showToast('⚠️ ยังไม่ได้ตั้งค่า Google Apps Script URL — ดูคำแนะนำด้านล่าง');
+    return;
+  }
+  collectFormData();
+  fetch(url, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(state.data)
+  });
+  showToast('📤 ส่งข้อมูลให้ครูแล้ว');
+}
+
+function restart() {
+  if (confirm('ต้องการเริ่มใหม่ทั้งหมด? ข้อมูลจะถูกลบ')) {
+    localStorage.removeItem('thian-ebook-builder');
+    location.reload();
+  }
+}
+
+// ============== UI helpers ==============
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+let toastTimer;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// Stepper click
+document.querySelectorAll('.step').forEach(s => {
+  s.addEventListener('click', () => goToStep(parseInt(s.dataset.step)));
+});
+
+// Init
+init();
+</script>
+</body>
+</html>
